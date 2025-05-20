@@ -1,6 +1,9 @@
 ﻿using API.Models.Data;
 using API.Models.Products;
 using API.Repositories;
+using API.Repositories.Interfaces;
+using API.Services;
+using AutoMapper;
 
 namespace API.UnitOfWorks
 {
@@ -10,24 +13,28 @@ namespace API.UnitOfWorks
         private CategoryRepository _categoryRepository;
         private ProductRepository _productRepository;
         private PhotoRepository _photoRepository;
+        private readonly IMapper _mapper;
+        private readonly IImageService _imageService;
 
-        public UnitOfWork( EcommerceDBContext context)
+        public UnitOfWork( EcommerceDBContext context , IImageService imageService , IMapper mapper)
         {
             this._context = context;
+            this._imageService = imageService;
+            this._mapper = mapper;
         }
 
-        public GenericRepository<Product> ProductRepository
+        public IProductRepository ProductRepository
         {
             get
             {
                 if (_productRepository == null)
                 {
-                    _productRepository =new ProductRepository(_context);
+                    _productRepository =new ProductRepository(_context , _mapper , _imageService);
                 }
                 return _productRepository;
             }
         }
-        public GenericRepository<Category> CategoryRepository
+        public ICategoryRepository CategoryRepository
         {
             get
             {
@@ -38,7 +45,7 @@ namespace API.UnitOfWorks
                 return _categoryRepository;
             }
         }
-        public GenericRepository<Photo> PhotoRepository
+        public IPhotoRepository PhotoRepository
         {
             get
             {

@@ -11,7 +11,7 @@ namespace API.Repositories
         {
             this._context = context;
         }
-        public async Task AddAsync(T entity)
+        public virtual async Task AddAsync(T entity)
         {
             await _context.Set<T>().AddAsync(entity);
         }

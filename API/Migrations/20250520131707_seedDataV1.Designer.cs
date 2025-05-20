@@ -3,6 +3,7 @@ using API.Models.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -10,13 +11,18 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace API.Migrations
 {
     [DbContext(typeof(EcommerceDBContext))]
-    partial class EcommerceDBContextModelSnapshot : ModelSnapshot
+    [Migration("20250520131707_seedDataV1")]
+    partial class seedDataV1
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
                 .HasAnnotation("ProductVersion", "9.0.5")
+                .HasAnnotation("Proxies:ChangeTracking", false)
+                .HasAnnotation("Proxies:CheckEquality", false)
+                .HasAnnotation("Proxies:LazyLoading", true)
                 .HasAnnotation("Relational:MaxIdentifierLength", 128);
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
@@ -115,10 +121,7 @@ namespace API.Migrations
                         .HasMaxLength(50)
                         .HasColumnType("nvarchar(50)");
 
-                    b.Property<decimal>("NewPrice")
-                        .HasColumnType("decimal(18,2)");
-
-                    b.Property<decimal>("OldPrice")
+                    b.Property<decimal>("Price")
                         .HasColumnType("decimal(18,2)");
 
                     b.HasKey("Id");
@@ -134,8 +137,7 @@ namespace API.Migrations
                             CategoryId = 1,
                             Description = "Latest model smartphone",
                             Name = "Smartphone",
-                            NewPrice = 699.99m,
-                            OldPrice = 9.99m
+                            Price = 699.99m
                         },
                         new
                         {
@@ -143,8 +145,7 @@ namespace API.Migrations
                             CategoryId = 1,
                             Description = "High-performance laptop",
                             Name = "Laptop",
-                            NewPrice = 1299.99m,
-                            OldPrice = 9.99m
+                            Price = 1299.99m
                         },
                         new
                         {
@@ -152,8 +153,7 @@ namespace API.Migrations
                             CategoryId = 2,
                             Description = "Comfortable cotton t-shirt",
                             Name = "T-shirt",
-                            NewPrice = 19.99m,
-                            OldPrice = 9.99m
+                            Price = 19.99m
                         },
                         new
                         {
@@ -161,8 +161,7 @@ namespace API.Migrations
                             CategoryId = 3,
                             Description = "Energy-efficient washing machine",
                             Name = "Washing Machine",
-                            NewPrice = 499.99m,
-                            OldPrice = 9.99m
+                            Price = 499.99m
                         });
                 });
 

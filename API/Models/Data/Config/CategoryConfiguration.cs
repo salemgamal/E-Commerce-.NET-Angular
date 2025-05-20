@@ -12,7 +12,6 @@ namespace API.Models.Data.Config
             builder.HasKey(c => c.Id);
             builder.Property(c => c.Name).IsRequired().HasMaxLength(30);
             builder.Property(c => c.Description).HasMaxLength(500);
-            builder.HasMany(c => c.Products).WithOne(p => p.Category).HasForeignKey(p => p.CategoryId);
             builder.HasData(
                 new Category { Id = 1, Name = "Electronics", Description = "Electronic devices and gadgets" },
                 new Category { Id = 2, Name = "Clothing", Description = "Apparel and garments" },
