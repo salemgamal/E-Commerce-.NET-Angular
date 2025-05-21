@@ -1,13 +1,18 @@
 ﻿
+using System.Text;
 using API.MapperConfig;
+using API.Models;
 using API.Models.Data;
 using API.Repositories;
 using API.Repositories.Service;
 using API.Services;
 using API.UnitOfWorks;
-using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.FileProviders;
+using Microsoft.IdentityModel.Tokens;
+
 
 namespace API
 {
@@ -25,6 +30,33 @@ namespace API
 
             builder.Services.AddDbContext<EcommerceDBContext>(options =>
                 options.UseLazyLoadingProxies().UseSqlServer(builder.Configuration.GetConnectionString("Ecommerce")));
+
+            builder.Services.AddIdentity<ApplicationUser, IdentityRole>()
+                .AddEntityFrameworkStores<EcommerceDBContext>()
+                .AddDefaultTokenProviders(); ;
+
+            builder.Services.AddAuthentication(options =>
+            {
+                options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+                options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+            })
+            .AddJwtBearer(options =>
+            {
+                options.TokenValidationParameters = new TokenValidationParameters
+                {
+                    ValidateIssuer = true,
+                    ValidateAudience = true,
+                    ValidateLifetime = true,
+                    ValidateIssuerSigningKey = true,
+                    ValidIssuer = builder.Configuration["Jwt:Issuer"],
+                    ValidAudience = builder.Configuration["Jwt:Audience"],
+                    IssuerSigningKey = new SymmetricSecurityKey(
+                        Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"]))
+                };
+            });
+
+            builder.Services.AddAuthorization();
+
 
             builder.Services.AddAutoMapper(typeof(MappConfig));
             builder.Services.AddScoped(typeof(IGenericRepository<>), typeof(GenericRepository<>));
@@ -46,20 +78,20 @@ namespace API
             });
             var app = builder.Build();
 
-            // Configure the HTTP request pipeline.
             if (app.Environment.IsDevelopment())
             {
                 app.MapOpenApi();
                 app.UseSwaggerUI(op => op.SwaggerEndpoint("/openapi/v1.json", "v1"));
 
             }
-            app.UseStaticFiles(); // تأكد أنه مفعّل
+            app.UseStatusCodePagesWithReExecute("/error/{0}");
+            app.UseStaticFiles();
 
             app.UseHttpsRedirection();
 
             app.UseCors(AllowAllOrigins);
 
-
+            app.UseAuthentication();
             app.UseAuthorization();
 
 

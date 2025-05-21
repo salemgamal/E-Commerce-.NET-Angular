@@ -19,6 +19,7 @@ namespace API.Repositories
         public Task UpdateAsync(T entity);
 
         public Task DeleteAsync(int id);
+        public Task<int> CountAsync();
 
     }
 }

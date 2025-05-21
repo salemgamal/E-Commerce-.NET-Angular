@@ -3,6 +3,7 @@ using API.Models.Data;
 using API.Models.Products;
 using API.Repositories.Interfaces;
 using API.Services;
+using API.Sharing;
 using AutoMapper;
 using Microsoft.EntityFrameworkCore;
 using static API.DTOs.Product.ProductDTO;
@@ -43,6 +44,7 @@ namespace API.Repositories
             return true;
         }
 
+
         public async Task<bool> UpdateAsync(UpdateProductDTO productDTO)
         {
             if (productDTO == null)
@@ -76,6 +78,81 @@ namespace API.Repositories
             await _context.SaveChangesAsync();
             return true;
 
+        }
+        public async Task<bool> DeleteAsync(Product product)
+        {
+            try
+            {
+                var FindPhoto = _context.Photos.Where(m => m.ProductId == product.Id).ToList();
+                if (FindPhoto != null)
+                {
+                    foreach (var item in FindPhoto)
+                    {
+                        _imageService.DeleteImageAsync(item.ImageName);
+                    }
+                    _context.Photos.RemoveRange(FindPhoto);
+                }
+                _context.Products.Remove(product);
+                _context.SaveChanges();
+                return true;
+            }
+            catch (Exception ex)
+            {
+                return false;
+            }
+        }
+
+        public async Task<IEnumerable<DisplayProductDTO>> GetAllAsync(ProductParam productParams)
+        {
+            var query = _context.Products
+                .Include(p => p.Category)
+                .Include(p => p.Photos)
+                .AsQueryable().AsNoTracking();
+
+            //filtering by word
+            if (!string.IsNullOrEmpty(productParams.Search))
+            {
+                var searchWords = productParams.Search.Split(' ');
+
+                query = query.Where(m => searchWords.All(word => m.Name.ToLower().Contains(word.ToLower()) 
+                || m.Description.ToLower().Contains(word.ToLower())));
+
+                //query = query
+                //    .Where(p => p.Name.ToLower().Contains(productParams.Search.ToLower()) ||
+                //    p.Description.ToLower().Contains(productParams.Search.ToLower()) );
+            }
+
+            if (productParams.CategoryId.HasValue)
+            {
+                query = query.Where(p => p.CategoryId == productParams.CategoryId.Value);
+            }
+
+            if (!string.IsNullOrEmpty(productParams.Sort))
+            {
+                switch (productParams.Sort.ToLower())
+                {
+                    case "priceasc":
+                        query = query.OrderBy(p => p.NewPrice);
+                        break;
+                    case "pricedesc":
+                        query = query.OrderByDescending(p => p.NewPrice);
+                        break;
+                    case "category":
+                        query = query.OrderBy(p => p.Category.Name);
+                        break;
+                    default:
+                        query = query.OrderBy(p => p.Name);
+                        break;
+                }
+            }
+
+
+            query = query
+                .Skip((productParams.PageNumber - 1) * productParams.PageSize)
+                .Take(productParams.PageSize);
+
+            var result = await query.ToListAsync();
+            return _mapper.Map<IEnumerable<DisplayProductDTO>>(result);
         }
     }
 }

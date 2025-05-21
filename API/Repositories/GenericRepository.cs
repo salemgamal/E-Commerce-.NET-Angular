@@ -16,6 +16,11 @@ namespace API.Repositories
             await _context.Set<T>().AddAsync(entity);
         }
 
+        public async Task<int> CountAsync()
+        {
+            return await _context.Set<T>().CountAsync();
+        }
+
         public async Task DeleteAsync(int id)
         {
             var entity = await _context.Set<T>().FindAsync(id);

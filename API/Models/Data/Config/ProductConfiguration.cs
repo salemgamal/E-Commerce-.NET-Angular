@@ -2,7 +2,7 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
-namespace API.Models.Data.Config
+namespace API.Repositories
 {
     public class ProductConfiguration : IEntityTypeConfiguration<Product>
     {
@@ -12,7 +12,8 @@ namespace API.Models.Data.Config
             builder.HasKey(p => p.Id);
             builder.Property(p => p.Name).IsRequired().HasMaxLength(50);
             builder.Property(p => p.Description).HasMaxLength(500);
-            builder.Property(p => p.NewPrice).HasColumnType("decimal(18,2)");
+            builder.Property(p => p.NewPrice).HasPrecision(18, 2);
+            builder.Property(p => p.OldPrice).HasPrecision(18, 2);
             builder.HasOne(p => p.Category)
                 .WithMany(c => c.Products)
                 .HasForeignKey(p => p.CategoryId)

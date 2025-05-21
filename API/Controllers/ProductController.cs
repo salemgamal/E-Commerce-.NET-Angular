@@ -5,6 +5,9 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using static API.DTOs.Product.ProductDTO;
 using API.Models.Products;
+using API.Sharing;
+using API.Helper;
+using Microsoft.AspNetCore.Authorization;
 
 namespace API.Controllers
 {
@@ -19,16 +22,17 @@ namespace API.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> GetAll()
+        public async Task<IActionResult> GetAll([FromQuery]ProductParam productParams )
         {
-            var products = await _unitOfWork.ProductRepository.GetAllAsync( p=> p.Category , products=> products.Photos);
+
+            var products = await _unitOfWork.ProductRepository.GetAllAsync(productParams);
             
             if (products == null)
             {
                 return BadRequest();
             }
-            var productDTO = _mapper.Map<IEnumerable<DisplayProductDTO>>(products);
-            return Ok(productDTO);
+            var totalCount = await _unitOfWork.ProductRepository.CountAsync();
+            return Ok(new Pagination<DisplayProductDTO>(productParams.PageNumber , productParams.PageSize, totalCount , products));
         }
 
         [HttpGet("{id}")]
@@ -80,14 +84,24 @@ namespace API.Controllers
         [HttpDelete("{id}")]
         public async Task<IActionResult> Delete(int id)
         {
-            var product = await _unitOfWork.ProductRepository.GetByIdAsync(id);
-            if (product == null)
+            try
             {
-                return NotFound();
+                var product = await _unitOfWork.ProductRepository
+                    .GetByIdAsync(id , p => p.Photos , product=> product.Category);
+                await _unitOfWork.ProductRepository.DeleteAsync(product);
+                return Ok("Product deleted successfully");
             }
-            await _unitOfWork.ProductRepository.DeleteAsync(id);
-            _unitOfWork.Save();
-            return NoContent();
+            catch (Exception ex)
+            {
+                return BadRequest(ex.InnerException?.Message ?? ex.Message);
+            }
+        }
+
+        [Authorize]
+        [HttpGet("secret")]
+        public IActionResult Secret()
+        {
+            return Ok("You are authorized!");
         }
 
     }
