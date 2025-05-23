@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.IdentityModel.Tokens;
+using Microsoft.AspNetCore.Authorization;
 
 namespace API.Controllers
 {
@@ -61,13 +62,39 @@ namespace API.Controllers
             return Ok(new { token });
         }
 
+        [HttpGet("user-info")]
+        [Authorize]
+        public async Task<IActionResult> GetUserInfo()
+        {
+            var userId = User.FindFirstValue("uid");
+            if (userId == null)
+                return Unauthorized();
+
+            var user = await _userManager.FindByIdAsync(userId);
+            if (user == null)
+                return NotFound("User not found");
+
+            return Ok(new
+            {
+                name = $"{user.FirstName} {user.LastName}",
+                email = user.Email,
+                firstName = user.FirstName,
+                lastName = user.LastName
+            });
+        }
+
+        [HttpPost("logout")]
+        public async Task<IActionResult> Logout()
+        {
+            return Ok("User logged out successfully.");
+        }
         private async Task<string> GenerateJwtToken(ApplicationUser user)
         {
             var claims = new[]
             {
             new Claim(JwtRegisteredClaimNames.Sub, user.Email),
             new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
-            new Claim(ClaimTypes.NameIdentifier, user.Id)
+            new Claim("uid", user.Id)
         };
 
             var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_config["Jwt:Key"]));

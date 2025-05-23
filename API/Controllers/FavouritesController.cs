@@ -7,12 +7,12 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.EntityFrameworkCore;
+using API.DTOs.Order;
 
 namespace API.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    [Authorize]
     public class FavouritesController : ControllerBase
     {
         private readonly EcommerceDBContext _context;
@@ -25,10 +25,9 @@ namespace API.Controllers
         }
 
         [HttpPost("{productId}")]
-        [Authorize]
         public async Task<IActionResult> AddToFavourites(int productId)
         {
-            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            var userId = User.FindFirstValue("uid");
             if (userId == null)
                 return Unauthorized();
 
@@ -51,10 +50,9 @@ namespace API.Controllers
         }
 
         [HttpDelete("{productId}")]
-        [Authorize]
         public async Task<IActionResult> RemoveFromFavourites(int productId)
         {
-            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            var userId = User.FindFirstValue("uid");
             var favourite = await _context.Favourites
                 .FirstOrDefaultAsync(f => f.UserId == userId && f.ProductId == productId);
 
@@ -71,19 +69,23 @@ namespace API.Controllers
         [Authorize]
         public async Task<IActionResult> GetFavourites()
         {
-            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            var userId = User.FindFirstValue("uid");
+
             var favourites = await _context.Favourites
                 .Include(f => f.Product)
+                .ThenInclude(p => p.Photos)
                 .Where(f => f.UserId == userId)
-                .Select(f => new
+                .Select(f => new FavouriteDTO
                 {
-                    f.Product.Id,
-                    f.Product.Name,
-                    f.Product.NewPrice,
-                    f.Product.Photos
+                    Id = f.Id,
+                    ProductId = f.Product.Id,
+                    Name = f.Product.Name,
+                    NewPrice = f.Product.NewPrice,
+                    Photos = f.Product.Photos.Select(p => p.ImageName).ToList()
                 }).ToListAsync();
 
             return Ok(favourites);
         }
+
     }
 }

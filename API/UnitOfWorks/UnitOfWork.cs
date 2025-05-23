@@ -13,6 +13,8 @@ namespace API.UnitOfWorks
         private CategoryRepository _categoryRepository;
         private ProductRepository _productRepository;
         private PhotoRepository _photoRepository;
+        private OrderRepository _orderRepository;
+        private FavouritesRepository _favouriteRepository;
         private readonly IMapper _mapper;
         private readonly IImageService _imageService;
 
@@ -54,6 +56,29 @@ namespace API.UnitOfWorks
                     _photoRepository = new PhotoRepository(_context);
                 }
                 return _photoRepository;
+            }
+        }
+
+        public IOrderRepository OrderRepository
+        {
+            get
+            {
+                if (_orderRepository == null)
+                {
+                    _orderRepository = new OrderRepository(_context);
+                }
+                return _orderRepository;
+            }
+        }
+        public IFavouritesRepository FavouritesRepository
+        {
+            get
+            {
+                if (_favouriteRepository == null)
+                {
+                    _favouriteRepository = new FavouritesRepository(_context);
+                }
+                return _favouriteRepository;
             }
         }
 
