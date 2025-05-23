@@ -33,7 +33,7 @@ A RESTful API built with ASP.NET Core for an e-commerce system. It includes user
 - Role-based authorization.
 
 ### 📁 Categories
-- Create, update, delete, and list product categories.
+- Create, update, and list product categories.
 
 ### 🛍️ Products
 - Add, update, delete, and retrieve products.
@@ -53,9 +53,9 @@ A RESTful API built with ASP.NET Core for an e-commerce system. It includes user
 
 ### Prerequisites
 
-- .NET 7 SDK
+- .NET 9 SDK
 - SQL Server
-- Visual Studio or VS Code
+- Visual Studio
 - Postman or Swagger for testing
 
 ### Run the API
